@@ -195,7 +195,7 @@ class Clips {
                     { name: this.$t.get('notThisClip', {type: this.$t.get(argsObject.type)}), value: this.$t.get('notThisClipText', {type: this.$t.get(argsObject.type)}), inline: true }
                 ], 
                 footer      : this.$t.get('footerNote'), 
-                image       : `https://sharp.xboxreplay.net/image?url=${encodeURIComponent(items[index].thumbnails[items[index].thumbnails.length - 1].uri)}`,
+                image       : `https://sharp.xboxreplay.net/image?url=${encodeURIComponent(items[index].thumbnails[0].uri)}`,
                 thumbnail   : gameList.find(g => g.fullname === items[index].titleName).image, 
                 title       : this.$t.get('latestItem', { gamertag: argsObject.gamertag, game: items[index].titleName }),
                 url         : xboxReplayUri
