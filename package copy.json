@@ -1,0 +1,44 @@
+{
+  "bugs": {
+    "url": "https://github.com/Halocrea/halo-clips.git"
+  },
+  "demos": [
+    "https://discord.gg/74UAq84"
+  ],
+  "dependencies": {
+    "axios": "^0.19.2",
+    "better-sqlite3": "^7.0.1",
+    "discord.js": "^12.1.1",
+    "dotenv": "^8.2.0",
+    "fs": "^0.0.1-security"
+  },
+  "description": "Call me with `>>`, and I'll fetch for you your latest Halo clip from Xbox Live and display it in a pretty way!",
+  "engines": {
+    "node": ">=12.16.1",
+    "yarn": ">=1.19.1"
+  },
+  "homepage": "https://github.com/tepec",
+  "keywords": [
+    "halo",
+    "discord",
+    "game",
+    "bot"
+  ],
+  "license": "GPL-3.0-only",
+  "main": "index.js",
+  "maintainers": [
+    {
+      "name": "Tepec Fett",
+      "email": "hi@tep.ec",
+      "web": "https://github.com/tepec"
+    }
+  ],
+  "name": "halo-clips-bot",
+  "repositories": [
+    {
+      "type": "git",
+      "url": "https://github.com/halocrea/halo-clips"
+    }
+  ],
+  "version": "2.0.0"
+}
