@@ -1,11 +1,10 @@
 {
-  "name": "halo-replay-2",
-  "version": "1.0.0",
-  "description": "a discord bot to retrieve XBL clips from users",
-  "main": "index.js",
-  "author": "Tepec Fett",
-  "license": "\"GPL-3.0-only\"",
-  "private": false,
+  "bugs": {
+    "url": "https://github.com/Halocrea/halo-clips.git"
+  },
+  "demos": [
+    "https://discord.gg/74UAq84"
+  ],
   "dependencies": {
     "@xboxreplay/xboxlive-api": "^3.3.0",
     "@xboxreplay/xboxlive-auth": "^3.3.0",
@@ -15,5 +14,34 @@
     "dotenv": "^8.2.0",
     "get-video-duration": "^1.0.3",
     "url-metadata": "^2.4.0"
-  }
+  },
+  "description": "Call me with `>>`, and I'll fetch for you your latest Halo clip from Xbox Live and display it in a pretty way!",
+  "engines": {
+    "node": ">=12.16.1",
+    "yarn": ">=1.19.1"
+  },
+  "homepage": "https://github.com/halocrea",
+  "keywords": [
+    "halo",
+    "discord",
+    "game",
+    "bot"
+  ],
+  "license": "GPL-3.0-only",
+  "main": "index.js",
+  "maintainers": [
+    {
+      "name": "Tepec Fett",
+      "email": "hi@tep.ec",
+      "web": "https://github.com/tepec"
+    }
+  ],
+  "name": "halo-clips-bot",
+  "repositories": [
+    {
+      "type": "git",
+      "url": "https://github.com/halocrea/halo-clips"
+    }
+  ],
+  "version": "2.0.0"
 }
