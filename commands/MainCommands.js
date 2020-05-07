@@ -59,7 +59,7 @@ class MainCommands {
     _understandArgs (args) {
         args = Array.from(args, a => a.toLowerCase())
         const indexOfScreenshot = args.indexOf(this.$t.get('paramScreenshot'))
-        const params            = { type: 'gameclip', gamertag: null, game: 'any' }
+        const params            = { type: 'gameclip', gamertag: null, game: { fullname: 'Halo' } }
         if (args.length < 0)
             return params
 
@@ -73,11 +73,11 @@ class MainCommands {
         }
 
         if (args.length > 0) {
-            let game        = args.find(a => !!gameList.some(g => g.keys.includes(a)))
-            const gameIndex = args.findIndex(a => !!gameList.some(g => g.keys.includes(a))) 
-            
+            let game        = args.find(a => !!gameList.some(g => g.keys.toLowerCase().includes(a)))
+            const gameIndex = args.findIndex(a => !!gameList.some(g => g.keys.toLowerCase().includes(a))) 
+
             if (game === 'Halo') { // if someone writes the name of the game like "Halo 2", I need to concatenate the two because in the args it's ['Halo', '2']
-                const idx = args.findIndex(a => !!gameList.some(g => g.keys.includes(a)))
+                const idx = args.findIndex(a => !!gameList.some(g => g.keys.toLowerCase().includes(a)))
                 if (idx >= 0 && args.length > idx + 1) {
                     game = `${args[idx]} ${args[idx + 1]}`
                     args.splice(idx + 1, 1)
@@ -85,7 +85,7 @@ class MainCommands {
             } 
 
             if (game) {
-                params.game = gameList.find(g => g.keys.includes(game))
+                params.game = gameList.find(g => g.keys.toLowerCase().includes(game))
                 args.splice(gameIndex, 1)
             }
             if (args.length > 0) 

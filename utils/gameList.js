@@ -2,17 +2,20 @@ const gameList = [
     {
         fullname    : "Halo: The Master Chief Collection",
         image       : "https://i.imgur.com/DnpU4p4.jpg",
-        keys        : "MCC, Master Chief Collection, Halo MCC"
+        keys        : "MCC, Master Chief Collection, Halo MCC", 
+        // id          : ""
     }, 
     {
         fullname    : "Halo: Reach",
         image       : "https://i.imgur.com/HOn3UNG.png",
-        keys        : "Reach, Halo Reach, Halo: Reach"
+        keys        : "Reach, Halo Reach, Halo: Reach",
+        // id          : ""
     }, 
     {
         fullname    : "Halo 5: Guardians",
         image       : "https://i.imgur.com/nbSazTw.png",
-        keys        : "Guardians, H5, Halo 5: Guardians"
+        keys        : "Guardians, H5, Halo 5: Guardians", 
+        // id          : ""
     }, 
     {
         fullname    : "Halo 3",
@@ -42,7 +45,8 @@ const gameList = [
     {
         fullname    : "Halo Wars 2",
         image       : "https://i.imgur.com/xYsJo4p.png",
-        keys        : "HW2, Halo Wars 2"
+        keys        : "HW2, Halo Wars 2",
+        // id          : "1667928394"
     },
     {
         fullname    : "Halo 5: Forge",
