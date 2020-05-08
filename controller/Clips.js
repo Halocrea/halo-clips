@@ -62,7 +62,7 @@ class Clips {
             let uri         = (argsObject.type === 'gameclip' ? XBOX_LIVE_DOMAINS.gameclips : XBOX_LIVE_DOMAINS.screenshots) + path_1.join('users', `xuid(${userXuid})`, argsObject.type === 'gameclip' ? 'clips' : 'screenshots')
             const args      = { qs: { maxItems: 20 } }
             
-            const items     = await this._fetchItems(uri, authInfo, args, argsObject.type, (argsObject.game.fullname || 'Halo'))
+            const items     = await this._fetchItems(uri, authInfo, args, argsObject.type, argsObject.game)
 
             if (items.length > 0) {
                 this._postItem(message, argsObject, items, msg)
@@ -70,7 +70,7 @@ class Clips {
                 msg.delete().then(() => 
                     message.channel.send(generateEmbed({
                         color       : '#ff0000',
-                        description : this.$t.get('errorNoResultDesc', { type: argsObject.type, gamertag: argsObject.gamertag, game: argsObject.game.fullname || 'Halo' }), 
+                        description : this.$t.get('errorNoResultDesc', { type: argsObject.type, gamertag: argsObject.gamertag, game: argsObject.game.fullname }), 
                         title       : this.$t.get('errorNoResult')
                     }))
                     .catch(err => { throw new Error(err.message) })
@@ -114,7 +114,7 @@ class Clips {
             
             const result    = await XboxLiveAPI.call({ url }, authInfo, args)
             const itemsType = type === 'gameclip' ? 'gameClips' : 'screenshots'  
-            let items       = result[itemsType].filter(item => item.titleName.includes(game))
+            let items       = result[itemsType].filter(item => item.titleName.includes(game.fullname))
             
             if (items.length < 1) {
                 if (result.pagingInfo && result.pagingInfo.continuationToken) {
