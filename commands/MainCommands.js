@@ -19,12 +19,12 @@ class MainCommands {
                 .replace(/“|”/g, '"')
                 .replace(/«|»/g, '"')
                 .trim()
-                .match(/\w+|"(?:\\"|[^"])+"/g)
+                .match(/[^\s"]+|"([^"]*)"/g)
             
         cmdAndArgs = Array.from(cmdAndArgs, a => a.replace(/"/g, ''))
         const cmd           = cmdAndArgs[0]
         let args            = ''
-
+        
         for (let i = 1; i < cmdAndArgs.length; i++) 
             args += cmdAndArgs[i] + ' '
         args = args.trim()
