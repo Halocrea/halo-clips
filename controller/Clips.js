@@ -163,8 +163,14 @@ class Clips {
 
     async _postItem (originalMessage, argsObject, items, messageToEdit, index = 0) {
         const locale        = this.guild.locale === 'en' ? 'en-US' : 'fr-FR'
-        let xboxReplayUri   = `https://www.xboxreplay.net/player/${argsObject.gamertag.toLowerCase().replace(/ /g, '-')}/${argsObject.type === 'gameclip' ? `clips/` : `screenshots/`}/${items[index].id}`
-
+        const xboxReplayUri = `https://www.xboxreplay.net/player/${argsObject.gamertag.toLowerCase().replace(/ /g, '-')}/${argsObject.type === 'gameclip' ? `clips/` : `screenshots/`}/${items[index].id}`
+        const fields        = [
+            { name: '.', value: this.$t.get('download'), inline: true },
+            { name: '.', value: this.$t.get('notThisClip', {type: this.$t.get(argsObject.type)}), inline: true }
+        ]
+        if (index > 0) 
+            fields.push({ name: '.', value: this.$t.get('next'), inline: true })
+        
         messageToEdit.edit(
             generateEmbed({
                 author      : {
@@ -180,10 +186,7 @@ class Clips {
                     url : xboxReplayUri, 
                     link: xboxReplayUri
                 }), 
-                fields      : [
-                    { name: this.$t.get('download'), value: this.$t.get('downloadText'), inline: true },
-                    { name: this.$t.get('notThisClip', {type: this.$t.get(argsObject.type)}), value: this.$t.get('notThisClipText', {type: this.$t.get(argsObject.type)}), inline: true }
-                ], 
+                fields, 
                 image       : `https://sharp.xboxreplay.net/image?url=${encodeURIComponent(items[index].thumbnail_urls.small)}`,
                 thumbnail   : gameList.find(g => g.fullname === items[index].game.name).image, 
                 title       : this.$t.get('latestItem', { gamertag: argsObject.gamertag, game: items[index].game.name }),

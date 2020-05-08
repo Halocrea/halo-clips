@@ -21,7 +21,7 @@ class MainCommands {
                 .trim()
                 .match(/[^\s"]+|"([^"]*)"/g)
             
-        cmdAndArgs = Array.from(cmdAndArgs, a => a.replace(/"/g, ''))
+        cmdAndArgs = Array.from(cmdAndArgs || [''], a => a.replace(/"/g, ''))
         const cmd           = cmdAndArgs[0]
         let args            = ''
         
