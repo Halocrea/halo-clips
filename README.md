@@ -20,7 +20,7 @@
 
 ## RELEASE NOTES
 The Halo Clips bot's is now faster, easier to use, more resilient and with more features!
-- Fetchings clips and screenshots is not 30 to 50% faster than before!
+- Fetching clips and screenshots is now 30 to 50% faster than before!
 - You can navigate to older clips/screenshots using the ⏪ and ⏩ reactions.
 - You can get a direct download link to your clip or screenshot by clicking the 📥 reaction.
 - You can save your gamertag using the `>> save Your Gamertag` command. 
