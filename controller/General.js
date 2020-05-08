@@ -36,7 +36,7 @@ class General {
     }
 
     inviteBot () {
-        this.message.channel.send(this.$t.get('inviteText', { botInviteLink: `https://discordapp.com/oauth2/authorize?client_id=${message.client.user.id}&scope=bot&permissions=93248` }))
+        this.message.channel.send(this.$t.get('inviteText', { botInviteLink: `https://discordapp.com/oauth2/authorize?client_id=${this.message.client.user.id}&scope=bot&permissions=93248` }))
     }
 
     releaseInfo () {
