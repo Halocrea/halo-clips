@@ -39,24 +39,48 @@ class Clips {
         }))
         
         try { 
-            const items = await this._fetchItems(argsObject)
-            if (items.length > 0) {
-                this._postItem(message, argsObject, items, msg)
-            } else {
-                msg.delete().then(() => 
-                    message.channel.send(generateEmbed({
-                        color       : '#ff0000',
-                        description : this.$t.get('errorNoResultDesc', { type: argsObject.type, gamertag: argsObject.gamertag, game: argsObject.game.fullname }), 
-                        title       : this.$t.get('errorNoResult')
-                    }))
-                    .catch(err => { throw new Error(err.message) })
-                )
-                .catch(err => { throw new Error(err.message) })
-            }
-            setTimeout(() => {
-                if (shouldAskToSaveGamertag) 
-                    new GamerController(message, this.guild).askForSave(argsObject.gamertag, argsObject.type)
-            }, 1000)
+            const items = []
+            let status  = 'waiting' 
+            let counter = 0
+            const itvl  = setInterval(async () => {
+                if (counter < 1)
+                    ++counter 
+                
+                if (status === 'waiting') {
+                    const res = await this._fetchItems(argsObject)
+                    if (res.pull && ['waiting', 'started'].includes(res.pull.status)) {
+                        msg.edit(generateEmbed({ 
+                            description : this.$t.get('cachingData'), 
+                            thumbnail   : 'https://i.imgur.com/vLTtGRJ.gif', 
+                            title       : this.$t.get('searchInProgress')
+                        }))
+                        return 
+                    } else {
+                        status = res.pull.status 
+                        clearInterval(itvl)
+                        if (res && res.data && res.data.length > 0) 
+                            items.push(...res.data.filter(d => d.game.name.includes(argsObject.game.fullname)))
+
+                        if (items.length > 0) {
+                            this._postItem(message, argsObject, items, msg)
+                        } else {
+                            msg.delete().then(() => 
+                                message.channel.send(generateEmbed({
+                                    color       : '#ff0000',
+                                    description : this.$t.get('errorNoResultDesc', { type: argsObject.type, gamertag: argsObject.gamertag, game: argsObject.game.fullname }), 
+                                    title       : this.$t.get('errorNoResult')
+                                }))
+                                .catch(err => { throw new Error(err.message) })
+                            )
+                            .catch(err => { throw new Error(err.message) })
+                        }
+                        setTimeout(() => {
+                            if (shouldAskToSaveGamertag) 
+                                new GamerController(message, this.guild).askForSave(argsObject.gamertag, argsObject.type)
+                        }, counter * 1000)
+                    }
+                } 
+            }, 2000) 
         } catch (err) {
             msg.edit(generateEmbed({
                 color       : '#ff0000',
@@ -78,8 +102,7 @@ class Clips {
                         'Authorization': process.env.XBOXREPLAY_AUTHORIZATION
                     }
                 })
-                if (data && data.data && data.data.length > 0) 
-                    items = data.data.filter(d => d.game.name.includes(args.game.fullname))
+                return data 
             }
             
             return items

@@ -12,7 +12,16 @@ class MainCommands {
     async handle (message, guild) {
         this.prefix         = guild.prefix
         this.$t             = new I18N(guild.locale)
-        const cmdAndArgs    = message.content.replace(this.prefix, '').trim().split(' ')
+        let cmdAndArgs    = 
+            message.content
+                .replace(this.prefix, '')
+                .replace(/‘|’/g, '\'')
+                .replace(/“|”/g, '"')
+                .replace(/«|»/g, '"')
+                .trim()
+                .match(/\w+|"(?:\\"|[^"])+"/g)
+            
+        cmdAndArgs = Array.from(cmdAndArgs, a => a.replace(/"/g, ''))
         const cmd           = cmdAndArgs[0]
         let args            = ''
 
@@ -73,11 +82,11 @@ class MainCommands {
         }
 
         if (args.length > 0) {
-            let game        = args.find(a => !!gameList.some(g => g.keys.toLowerCase().includes(a)))
-            const gameIndex = args.findIndex(a => !!gameList.some(g => g.keys.toLowerCase().includes(a))) 
+            let game        = args.find(a => !!gameList.some(g => a.length > 1 && g.keys.toLowerCase().includes(a)))
+            const gameIndex = args.findIndex(a => !!gameList.some(g => a.length > 1 && g.keys.toLowerCase().includes(a))) 
 
-            if (game === 'Halo') { // if someone writes the name of the game like "Halo 2", I need to concatenate the two because in the args it's ['Halo', '2']
-                const idx = args.findIndex(a => !!gameList.some(g => g.keys.toLowerCase().includes(a)))
+            if (game === 'halo') { // if someone writes the name of the game like "Halo 2", I need to concatenate the two because in the args it's ['Halo', '2']
+                const idx = args.findIndex(a => !!gameList.some(g => a.length > 1 && g.keys.toLowerCase().includes(a)))
                 if (idx >= 0 && args.length > idx + 1) {
                     game = `${args[idx]} ${args[idx + 1]}`
                     args.splice(idx + 1, 1)
