@@ -162,7 +162,10 @@ class Clips {
 
     async _postItem (originalMessage, argsObject, items, messageToEdit, index = 0) {
         const locale        = this.guild.locale === 'en' ? 'en-US' : 'fr-FR'
-        const xboxReplayUri = `https://www.xboxreplay.net/player/${argsObject.gamertag.toLowerCase().replace(/ /g, '-')}/${argsObject.type === 'gameclip' ? `clips/` : `screenshots/`}/${items[index].id}`
+        let xboxReplayUri   = `https://www.xboxreplay.net/player/${argsObject.gamertag.toLowerCase().replace(/ /g, '-')}/${argsObject.type === 'gameclip' ? `clips` : `screenshots`}/${items[index].id}`
+        if (argsObject.game.ids && argsObject.game.ids.length > 0 ) // we can use the /search endpoint
+            xboxReplayUri = `https://api.xboxreplay.net/search/game-dvr?target=${argsObject.type === 'gameclip' ? `clips` : `screenshots`}&gamertag=${argsObject.gamertag.toLowerCase().replace(/ /g, '-')}&game_id=${argsObject.game.ids.join(',')}`
+
         const fields        = [
             { name: '.', value: this.$t.get('download'), inline: true },
             { name: '.', value: this.$t.get('notThisClip', {type: this.$t.get(argsObject.type)}), inline: true }
