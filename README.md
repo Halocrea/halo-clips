@@ -33,7 +33,7 @@ Use `>> help` to see the full list of available commands.
 ### NOTES ON BRANCHES AND XBOX REPLAY PARTNERSHIP
 By default on the `master` branch, Halo Clips uses [@xboxreplay/xboxlive-auth](https://github.com/XboxReplay/xboxlive-auth) and [@xboxreplay/xboxlive-api](https://github.com/XboxReplay/xboxlive-api) node packages to authenticate and access the Xbox Live API, which is great and only requires an Xbox Live account's credentials to work.
 
-**However**, the `xboxreplay-partner-access` branch depends on Xbox Replay (free) API. If you want to get access to it, feel free to contact Xbox Replay on Twitter @XboxReplayNet or by email at api@xboxreplay.net.   
+**However**, the `xboxreplay-partner-access` branch depends on [Xbox Replay (free) API](https://github.com/XboxReplay/xboxreplay-public-api). If you want to get access to it, feel free to contact Xbox Replay on Twitter @XboxReplayNet or by email at api@xboxreplay.net.     
 
 ## Prerequisites
 
