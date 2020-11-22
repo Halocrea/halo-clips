@@ -11,6 +11,11 @@ const XboxLiveAuth      = require('@xboxreplay/xboxlive-auth')
 const XboxLiveAPI       = require('@xboxreplay/xboxlive-api')
 const XBLAuthentication = require('../utils/XBLAuthentication')
 
+const { MessageAttachment, Message } = require('discord.js')
+const https                 = require('https')
+const http                  = require('http')
+const fs                    = require('fs')
+
 class Clips {
     constructor (guild) {
         this.guild  = guild
@@ -97,6 +102,23 @@ class Clips {
             }))
         }
     }
+    
+    async _authenticate () {
+        try {
+            const savedAuth = XBLAuthentication.get()
+            if (savedAuth.expiresOn && 
+                savedAuth.expiresOn.length > 0 &&
+                new Date(savedAuth.expiresOn) > new Date()
+            ) 
+                return savedAuth
+            else {
+                const auth = await XboxLiveAuth.authenticate(process.env.XBL_EMAIL, process.env.XBL_PASSWORD)
+                return XBLAuthentication.save(auth)
+            }
+        } catch (err) {
+            throw new Error(`in utils/Clips/authenticate, couldn't fetch authentication infos: ${err.message}`)
+        }
+    }
 
     async _fetchItems (args) {
         try {
@@ -117,6 +139,29 @@ class Clips {
         } catch (err) {
             throw new Error(err.message)
         }
+    }
+
+    _getImage(url, callback) {
+        https.get(url, res => {
+            // Initialise an array
+            const bufs = [];
+    
+            // Add the data to the buffer collection
+            res.on('data', function (chunk) {
+                bufs.push(chunk)
+            });
+    
+            // This signifies the end of a request
+            res.on('end', function () {
+                // We can join all of the 'chunks' of the image together
+                const data = Buffer.concat(bufs);
+    
+                // Then we can call our callback.
+                callback(null, data);
+            });
+        })
+        // Inform the callback of the error.
+        .on('error', callback);
     }
 
     async _reactionsToMessage(messageToEdit, originalMessage, argsObject, items = [], index) {
@@ -172,30 +217,35 @@ class Clips {
         ]
         if (index > 0) 
             fields.push({ name: '.', value: this.$t.get('next'), inline: true })
+
+        const chan = messageToEdit.channel 
+        this._getImage(`https://sharp.xboxreplay.net/image?url=${encodeURIComponent(items[index].thumbnail_urls.small)}`, (err, data) => {
+            messageToEdit.delete().then(() => {
+                chan.send(generateEmbed({
+                    author      : {
+                        iconURL : 'https://i.imgur.com/AqZ1KLb.png',
+                        name    : 'XboxReplay.net',
+                        url     : 'https://www.xboxreplay.net/'
+                    }, 
+                    color       : '#107c10',
+                    description : this.$t.get('itemInfo', { 
+                        type: this.$t.get(argsObject.type)[0].toUpperCase() + this.$t.get(argsObject.type).slice(1), 
+                        date: new Date(items[index].uploaded_at).toLocaleDateString(locale), 
+                        time: new Date(items[index].uploaded_at).toLocaleTimeString(locale), 
+                        url : xboxReplayUri, 
+                        link: xboxReplayUri
+                    }), 
+                    fields, 
+                    thumbnail   : gameList.find(g => g.fullname === items[index].game.name).image,
+                    image       : new MessageAttachment(data, 'image.png'),  
+                    title       : this.$t.get('latestItem', { gamertag: argsObject.gamertag, game: items[index].game.name }),
+                    url         : xboxReplayUri
+                }))
+                .then((msg) => this._reactionsToMessage(msg, originalMessage, argsObject, items, index))
+                .catch(err => { throw new Error(err.message) })
+            })
+        })
         
-        messageToEdit.edit(
-            generateEmbed({
-                author      : {
-                    iconURL : 'https://i.imgur.com/AqZ1KLb.png',
-                    name    : 'XboxReplay.net',
-                    url     : 'https://www.xboxreplay.net/'
-                }, 
-                color       : '#107c10',
-                description : this.$t.get('itemInfo', { 
-                    type: this.$t.get(argsObject.type)[0].toUpperCase() + this.$t.get(argsObject.type).slice(1), 
-                    date: new Date(items[index].uploaded_at).toLocaleDateString(locale), 
-                    time: new Date(items[index].uploaded_at).toLocaleTimeString(locale), 
-                    url : xboxReplayUri, 
-                    link: xboxReplayUri
-                }), 
-                fields, 
-                image       : `https://sharp.xboxreplay.net/image?url=${encodeURIComponent(items[index].thumbnail_urls.small)}`,
-                thumbnail   : gameList.find(g => g.fullname === items[index].game.name).image, 
-                title       : this.$t.get('latestItem', { gamertag: argsObject.gamertag, game: items[index].game.name }),
-                url         : xboxReplayUri
-            }))
-            .then(() => this._reactionsToMessage(messageToEdit, originalMessage, argsObject, items, index))
-            .catch(err => { throw new Error(err.message) })
     }
 }
 

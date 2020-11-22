@@ -74,7 +74,6 @@ class General {
                 title       : this.$t.get('errorGeneric')
             })).catch(error => process.dLogger.log(`in commands/MainCommands/handle: ${error.message}`))
         }
-
     }
 }
 
