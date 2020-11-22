@@ -279,7 +279,7 @@ class Clips {
                 method: 'post',
                 url: 'https://api.imgur.com/3/upload',
                 headers: { 
-                    'Authorization': 'Client-ID 18e2840ca2ac4e2', 
+                    'Authorization': `Client_ID ${process.env.IMGUR_CLIENT_ID}`, 
                     ...data.getHeaders()
                 },
                 maxContentLength: 209715200, 
