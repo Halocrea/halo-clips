@@ -58,6 +58,6 @@
     "setLanguageSuccessDesc": "Okay, je parlerai maintenant en français !",
     "show"                  : "Afficher sur Discord",
     "showText"              : "🎦 pour afficher le clip ici.",
-    "uploading"             : "Récupération du clip...", 
+    "uploading"             : "Récupération du clip et upload sur Imgur ; cette opération peut prendre jusqu'à quelques minutes ...", 
     "workingOnIt"           : "Je suis sur le coup!"
 }

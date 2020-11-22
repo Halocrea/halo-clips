@@ -58,6 +58,6 @@
     "setLanguageSuccessDesc": "Okay, from now on I'll speak in english!",
     "show"                  : "Play on Discord",
     "showText"              : "🎦 to play the gameclip here.",
-    "uploading"             : "Uploading the gameclip on Imgur...", 
+    "uploading"             : "Downloading the clip, then uploading it on Imgur; this may take up to a few minutes...", 
     "workingOnIt"           : "Working on it!"
 }
