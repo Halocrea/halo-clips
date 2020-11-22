@@ -56,5 +56,8 @@
     "searchInProgress"      : "Search in progress...", 
     "setLanguageSuccess"    : "Done!",
     "setLanguageSuccessDesc": "Okay, from now on I'll speak in english!",
+    "show"                  : "Play on Discord",
+    "showText"              : "🎦 to play the gameclip here.",
+    "uploading"             : "Uploading the gameclip on Imgur...", 
     "workingOnIt"           : "Working on it!"
 }

@@ -1,5 +1,6 @@
 require('dotenv').config() 
 
+const axios                 = require('axios')
 const fs                    = require('fs')
 const gameList              = require('../utils/gameList')
 const GamerController       = require('./Gamer')
@@ -192,20 +193,24 @@ class Clips {
         .on('error', callback);
     }
 
-    async _reactionsToMessage(messageToEdit, originalMessage, argsObject, items = [], index) {
+    async _reactionsToMessage(messageToEdit, originalMessage, argsObject, items = [], index, title, description) {
         
         const dl    = '📥'
         const prev  = '⏪'
         const next  = '⏩'
-        try {
+        const show  = '🎦'
+        try { 
             messageToEdit.react(dl).catch(err => process.dLogger.log(`in controller/Clips/_reactionsToMessage: ${err.message}`))
             if (items.length > index + 1)
                 setTimeout(() => messageToEdit.react(prev).catch(err => process.dLogger.log(`in controller/Clips/_reactionsToMessage: ${err.message}`)), 1) 
             if (index > 0)
                 setTimeout(() => messageToEdit.react(next).catch(err => process.dLogger.log(`in controller/Clips/_reactionsToMessage: ${err.message}`)), 1)
             
-            const filter = (reaction, user) => {
-                const firstCheck = [dl, prev, next].includes(reaction.emoji.name)
+            if (items[index].gameClipUris && items[index].gameClipUris[0])
+                messageToEdit.react(show).catch(err => process.dLogger.log(`in controller/Clips/_reactionsToMessage: ${err.message}`))
+
+            const filter = (reaction, user) => { 
+                const firstCheck = [dl, prev, next, show].includes(reaction.emoji.name)
                 if (!firstCheck)
                     return false 
                 
@@ -219,20 +224,79 @@ class Clips {
                     case dl: 
                         const dlLink = `https://api.xboxreplay.net/ugc-files/xuid-${items[index].xuid}/${argsObject.type === 'gameclip' ? `${items[index].gameClipId}/gameclip.mp4` : `${items[index].screenshotId}/screenshot.png`}`
                         originalMessage.channel.send(this.$t.get('dlLink', { type: argsObject.type, link: dlLink }))
+                        collector.stop()
+                        messageToEdit.reactions.removeAll().catch(err => process.dLogger.log(`in controller/Clips/_reactionsToMessage, failed to clear reactions: ${err.message}`))
                         break 
                     case prev: 
                         this._postItem(originalMessage, argsObject, items, messageToEdit, index + 1)
+                        collector.stop()
+                        messageToEdit.reactions.removeAll().catch(err => process.dLogger.log(`in controller/Clips/_reactionsToMessage, failed to clear reactions: ${err.message}`))
                         break 
                     case next:
                         this._postItem(originalMessage, argsObject, items, messageToEdit, index - 1)
+                        collector.stop()
+                        messageToEdit.reactions.removeAll().catch(err => process.dLogger.log(`in controller/Clips/_reactionsToMessage, failed to clear reactions: ${err.message}`))
+                        break
+                    case show: 
+                        collector.stop()
+                        messageToEdit.delete().then(() => {
+                            originalMessage.channel.send(generateEmbed({ 
+                                description : this.$t.get('uploading'), 
+                                thumbnail   : 'https://i.imgur.com/vLTtGRJ.gif', 
+                                title       : this.$t.get('workingOnIt')
+                            }))
+                                .then(msg => {
+                                    this._postClip(items[index].gameClipUris[0].uri, title, description)
+                                        .then(res => { 
+                                            const itvl = setInterval(() => {
+                                                axios.get(res)
+                                                    .then(() => {
+                                                        clearInterval(itvl)
+                                                        msg.delete().then(() => {
+                                                            originalMessage.channel.send(`> ** ${title}: ** \n${res}`)
+                                                        })
+                                                    })
+                                                    .catch(() => {})
+                                            }, 2500)
+                                        })
+                                })
+                        })
                         break
                 }
-                collector.stop()
-                messageToEdit.reactions.removeAll().catch(err => process.dLogger.log(`in controller/Clips/_reactionsToMessage, failed to clear reactions: ${err.message}`))
             })
         } catch (err) {
             throw new Error(`in controller/Clips/_reactionsToMessage: ${err.message}`)
         }
+    }
+
+    _postClip (video, title, description) { 
+        return this._getClip(video).then(res => {
+            const FormData = require('form-data')
+            const data = new FormData()
+            data.append('video', fs.createReadStream(res))
+
+            return axios({
+                method: 'post',
+                url: 'https://api.imgur.com/3/upload',
+                headers: { 
+                    'Authorization': 'Client-ID 18e2840ca2ac4e2', 
+                    ...data.getHeaders()
+                },
+                maxContentLength: 209715200, 
+                maxBodyLength: 209715200,
+                data : data,
+                disable_audio: 0,
+                title,
+                description
+            }).then(({ data }) => { 
+                fs.unlink(res, () => {})
+                if (data.status === 200 && data.data)
+                    return data.data.mp4
+            }).catch(err => console.log(err => {
+                fs.unlink(res, () => {})
+                throw new Error(`in controller/Clips/_reactionsToMessage: ${err.message}`)
+            }))
+        })
     }
 
     async _postItem (originalMessage, argsObject, items, messageToEdit, index = 0) {
@@ -240,8 +304,22 @@ class Clips {
         let xboxReplayUri   = `https://www.xboxreplay.net/player/${argsObject.gamertag.toLowerCase().replace(/ /g, '-')}/`
         xboxReplayUri       += argsObject.type === 'gameclip' ? `clips/${items[index].gameClipId}` : `screenshots/${items[index].screenshotId}`
         const chan          = messageToEdit.channel 
+        const title         = this.$t.get('latestItem', { gamertag: argsObject.gamertag, game: items[index].titleName })
+        const description   = this.$t.get('itemInfo', { 
+            type: this.$t.get(argsObject.type)[0].toUpperCase() + this.$t.get(argsObject.type).slice(1), 
+            date: new Date(items[index].datePublished).toLocaleDateString(locale), 
+            time: new Date(items[index].datePublished).toLocaleTimeString(locale), url: xboxReplayUri, 
+            link: xboxReplayUri
+        })
         
-        this._getImage(items[index].thumbnails[0].uri, (err, data) => {
+        this._getImage(items[index].thumbnails[0].uri, (err, data) => { 
+            const fields = [{ name: this.$t.get('download'), value: this.$t.get('downloadText'), inline: true }]
+
+            if (items[index].gameClipUris && items[index].gameClipUris[0]) 
+                fields.push({ name: this.$t.get('show'), value: this.$t.get('showText'), inline: true })
+            else 
+                fields.push({ name: this.$t.get('notThisClip'), value: this.$t.get('notThisClipText', {type: this.$t.get(argsObject.type)}), inline: true })
+            
             messageToEdit.delete().then(() => {
                 chan.send(
                     generateEmbed({
@@ -251,23 +329,15 @@ class Clips {
                             url     : 'https://www.xboxreplay.net/'
                         }, 
                         color       : '#107c10',
-                        description : this.$t.get('itemInfo', { 
-                            type: this.$t.get(argsObject.type)[0].toUpperCase() + this.$t.get(argsObject.type).slice(1), 
-                            date: new Date(items[index].datePublished).toLocaleDateString(locale), 
-                            time: new Date(items[index].datePublished).toLocaleTimeString(locale), url: xboxReplayUri, 
-                            link: xboxReplayUri
-                        }), 
-                        fields      : [
-                            { name: this.$t.get('download'), value: this.$t.get('downloadText'), inline: true },
-                            { name: this.$t.get('notThisClip', {type: this.$t.get(argsObject.type)}), value: this.$t.get('notThisClipText', {type: this.$t.get(argsObject.type)}), inline: true }
-                        ], 
+                        description, 
+                        fields, 
                         footer      : this.$t.get('footerNote'), 
                         image       : new MessageAttachment(data, 'image.png'),
                         thumbnail   : gameList.find(g => g.fullname === items[index].titleName).image, 
-                        title       : this.$t.get('latestItem', { gamertag: argsObject.gamertag, game: items[index].titleName }),
+                        title,
                         url         : xboxReplayUri
                     }))
-                    .then((msg) => this._reactionsToMessage(msg, originalMessage, argsObject, items, index))
+                    .then(msg => this._reactionsToMessage(msg, originalMessage, argsObject, items, index, title, description))
                     .catch(err => { throw new Error(err.message) })
             })
         }) 

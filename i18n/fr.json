@@ -56,5 +56,8 @@
     "searchInProgress"      : "Recherche en cours ...", 
     "setLanguageSuccess"    : "C'est fait !",
     "setLanguageSuccessDesc": "Okay, je parlerai maintenant en français !",
+    "show"                  : "Afficher sur Discord",
+    "showText"              : "🎦 pour afficher le clip ici.",
+    "uploading"             : "Récupération du clip...", 
     "workingOnIt"           : "Je suis sur le coup!"
 }
