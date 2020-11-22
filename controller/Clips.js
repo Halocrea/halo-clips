@@ -1,15 +1,18 @@
 require('dotenv').config() 
 
-const gameList          = require('../utils/gameList')
-const GamerController   = require('./Gamer')
-const Gamers            = require('../crud/Gamers')
-const Guilds            = require('../crud/Guilds')
-const generateEmbed     = require('../utils/generateEmbed')
-const I18N              = require('../utils/I18N')
-const XboxLiveAuth      = require('@xboxreplay/xboxlive-auth')
-const XboxLiveAPI       = require('@xboxreplay/xboxlive-api')
-const XBLAuthentication = require('../utils/XBLAuthentication')
-const XBOX_LIVE_DOMAINS = {
+const fs                    = require('fs')
+const gameList              = require('../utils/gameList')
+const GamerController       = require('./Gamer')
+const Gamers                = require('../crud/Gamers')
+const Guilds                = require('../crud/Guilds')
+const generateEmbed         = require('../utils/generateEmbed')
+const https                 = require('https')
+const I18N                  = require('../utils/I18N')
+const { MessageAttachment } = require('discord.js')
+const XboxLiveAuth          = require('@xboxreplay/xboxlive-auth')
+const XboxLiveAPI           = require('@xboxreplay/xboxlive-api')
+const XBLAuthentication     = require('../utils/XBLAuthentication')
+const XBOX_LIVE_DOMAINS     = {
     screenshots : 'https://screenshotsmetadata.xboxlive.com/',
     gameclips   : 'https://gameclipsmetadata.xboxlive.com/',
     profile     : 'https://profile.xboxlive.com/'
@@ -128,6 +131,67 @@ class Clips {
         }
     }
 
+    _getClip(url) {
+        const dest = `./tmp/${Math.random()}.mp4`
+        return new Promise((resolve, reject) => {
+            const file = fs.createWriteStream(dest, { flags: "wx" });
+    
+            const request = https.get(url, response => {
+                if (response.statusCode === 200) {
+                    response.pipe(file);
+                } else {
+                    file.close();
+                    fs.unlink(dest, () => {}); // Delete temp file
+                    reject(`Server responded with ${response.statusCode}: ${response.statusMessage}`);
+                }
+            });
+    
+            request.on("error", err => {
+                file.close();
+                fs.unlink(dest, () => {}); // Delete temp file
+                reject(err.message);
+            });
+    
+            file.on("finish", () => {
+                resolve(dest);
+            });
+    
+            file.on("error", err => {
+                file.close();
+    
+                if (err.code === "EEXIST") {
+                    reject("File already exists");
+                } else {
+                    fs.unlink(dest, () => {}); // Delete temp file
+                    reject(err.message);
+                }
+            });
+        });
+    }
+    
+    _getImage(url, callback) {
+        https.get(url, res => {
+            // Initialise an array
+            const bufs = [];
+    
+            // Add the data to the buffer collection
+            res.on('data', function (chunk) {
+                bufs.push(chunk)
+            });
+    
+            // This signifies the end of a request
+            res.on('end', function () {
+                // We can join all of the 'chunks' of the image together
+                const data = Buffer.concat(bufs);
+    
+                // Then we can call our callback.
+                callback(null, data);
+            });
+        })
+        // Inform the callback of the error.
+        .on('error', callback);
+    }
+
     async _reactionsToMessage(messageToEdit, originalMessage, argsObject, items = [], index) {
         
         const dl    = '📥'
@@ -175,33 +239,38 @@ class Clips {
         const locale        = this.guild.locale === 'en' ? 'en-US' : 'fr-FR'
         let xboxReplayUri   = `https://www.xboxreplay.net/player/${argsObject.gamertag.toLowerCase().replace(/ /g, '-')}/`
         xboxReplayUri       += argsObject.type === 'gameclip' ? `clips/${items[index].gameClipId}` : `screenshots/${items[index].screenshotId}`
-
-        messageToEdit.edit(
-            generateEmbed({
-                author      : {
-                    iconURL : 'https://i.imgur.com/AqZ1KLb.png',
-                    name    : 'XboxReplay.net',
-                    url     : 'https://www.xboxreplay.net/'
-                }, 
-                color       : '#107c10',
-                description : this.$t.get('itemInfo', { 
-                    type: this.$t.get(argsObject.type)[0].toUpperCase() + this.$t.get(argsObject.type).slice(1), 
-                    date: new Date(items[index].datePublished).toLocaleDateString(locale), 
-                    time: new Date(items[index].datePublished).toLocaleTimeString(locale), url: xboxReplayUri, 
-                    link: xboxReplayUri
-                }), 
-                fields      : [
-                    { name: this.$t.get('download'), value: this.$t.get('downloadText'), inline: true },
-                    { name: this.$t.get('notThisClip', {type: this.$t.get(argsObject.type)}), value: this.$t.get('notThisClipText', {type: this.$t.get(argsObject.type)}), inline: true }
-                ], 
-                footer      : this.$t.get('footerNote'), 
-                image       : `https://sharp.xboxreplay.net/image?url=${encodeURIComponent(items[index].thumbnails[0].uri)}`,
-                thumbnail   : gameList.find(g => g.fullname === items[index].titleName).image, 
-                title       : this.$t.get('latestItem', { gamertag: argsObject.gamertag, game: items[index].titleName }),
-                url         : xboxReplayUri
-            }))
-            .then(() => this._reactionsToMessage(messageToEdit, originalMessage, argsObject, items, index))
-            .catch(err => { throw new Error(err.message) })
+        const chan          = messageToEdit.channel 
+        
+        this._getImage(items[index].thumbnails[0].uri, (err, data) => {
+            messageToEdit.delete().then(() => {
+                chan.send(
+                    generateEmbed({
+                        author      : {
+                            iconURL : 'https://i.imgur.com/AqZ1KLb.png',
+                            name    : 'XboxReplay.net',
+                            url     : 'https://www.xboxreplay.net/'
+                        }, 
+                        color       : '#107c10',
+                        description : this.$t.get('itemInfo', { 
+                            type: this.$t.get(argsObject.type)[0].toUpperCase() + this.$t.get(argsObject.type).slice(1), 
+                            date: new Date(items[index].datePublished).toLocaleDateString(locale), 
+                            time: new Date(items[index].datePublished).toLocaleTimeString(locale), url: xboxReplayUri, 
+                            link: xboxReplayUri
+                        }), 
+                        fields      : [
+                            { name: this.$t.get('download'), value: this.$t.get('downloadText'), inline: true },
+                            { name: this.$t.get('notThisClip', {type: this.$t.get(argsObject.type)}), value: this.$t.get('notThisClipText', {type: this.$t.get(argsObject.type)}), inline: true }
+                        ], 
+                        footer      : this.$t.get('footerNote'), 
+                        image       : new MessageAttachment(data, 'image.png'),
+                        thumbnail   : gameList.find(g => g.fullname === items[index].titleName).image, 
+                        title       : this.$t.get('latestItem', { gamertag: argsObject.gamertag, game: items[index].titleName }),
+                        url         : xboxReplayUri
+                    }))
+                    .then((msg) => this._reactionsToMessage(msg, originalMessage, argsObject, items, index))
+                    .catch(err => { throw new Error(err.message) })
+            })
+        }) 
     }
 }
 

@@ -18,9 +18,9 @@ module.exports = ({ color, description, fields, footer, image, thumbnail, title,
     for (let i in fields)
         embed.addField(fields[i].name, fields[i].value, !!fields[i].inline)
 
-    if (image)
-        embed.setImage(image)
-
+    if (image) 
+        embed.attachFiles([image]).setImage('attachment://image.png');
+    
     if (footer)
         embed.setFooter(footer)
 
