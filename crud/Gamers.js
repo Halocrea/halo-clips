@@ -48,13 +48,16 @@ class Gamers {
         const gamersRaw     = this.db.prepare('SELECT * FROM gamers').all()
         const gamers        = []
         for (const i in gamersRaw) 
-            gamers.push(new Guild(gamersRaw[i]))
+            gamers.push(new Gamer(gamersRaw[i]))
 
         return gamers
     }
 
     getById (id) {
-        const gamerRaw = this.db.prepare('SELECT * FROM gamers WHERE id = ? LIMIT 1').get(id)
+        // better-sqlite, and it's most probably related to JS itself, has an issue with .get(id): 
+        // it refuses to parse "id" to string, even when you explicitely do so.
+        const gamers = this.all()
+        const gamerRaw = gamers.find(g => g.id == id) || null
 
         return gamerRaw ? new Gamer(gamerRaw) : null
     }

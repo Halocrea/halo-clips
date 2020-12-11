@@ -318,7 +318,7 @@ class Clips {
             if (items[index].gameClipUris && items[index].gameClipUris[0]) 
                 fields.push({ name: this.$t.get('show'), value: this.$t.get('showText'), inline: true })
             else 
-                fields.push({ name: this.$t.get('notThisClip'), value: this.$t.get('notThisClipText', {type: this.$t.get(argsObject.type)}), inline: true })
+                fields.push({ name: this.$t.get('notThisClip', {type: this.$t.get(argsObject.type)}), value: this.$t.get('notThisClipText', {type: this.$t.get(argsObject.type)}), inline: true })
             
             messageToEdit.delete().then(() => {
                 chan.send(
