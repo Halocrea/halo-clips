@@ -8,7 +8,7 @@
   "dependencies": {
     "@xboxreplay/xboxlive-api": "^3.3.0",
     "@xboxreplay/xboxlive-auth": "^3.3.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "better-sqlite3": "^7.0.1",
     "discord.js": "^12.2.0",
     "dotenv": "^8.2.0",
