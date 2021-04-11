@@ -16,7 +16,7 @@ const client            = new Discord.Client({
     ]}
 })
 
-client.on('debug', console.log)
+// client.on('debug', console.log)
 
 client.on('ready', async () => {
     dLogger = await require('./utils/dLogger').init(client)
