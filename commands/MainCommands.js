@@ -9,7 +9,8 @@ const I18N          = require('../utils/I18N')
 
 
 class MainCommands {
-    async handle (message, guild) {
+    async handle (message, guild, dLogger) {
+        this.dLogger        = dLogger
         this.prefix         = guild.prefix
         this.$t             = new I18N(guild.locale)
         let cmdAndArgs      = 
@@ -55,12 +56,13 @@ class MainCommands {
                     break
             }
         } catch (err) {
-            process.dLogger.log(`in commands/MainCommands/handle: ${err.message}`)
+            this.dLogger && this.dLogger.log(`in commands/MainCommands/handle: ${err.message}`)
+
             message.channel.send(generateEmbed({
                 color       : '#ff0000',
                 description : this.$t.get('errorGenericDesc', { error: err.message }), 
                 title       : this.$t.get('errorGeneric')
-            })).catch(error => process.dLogger.log(`in commands/MainCommands/handle: ${error.message}`))
+            })).catch(error => this.dLogger && this.dLogger.log(`in commands/MainCommands/handle: ${error.message}`))
         }
     }
 

@@ -2,7 +2,8 @@ const Database  = require('better-sqlite3')
 const Guild     = require('../schemas/Guild') 
 
 class Guilds {
-    constructor () {
+    constructor (dLogger) {
+        this.dLogger == dLogger
         try {
             this.db = new Database('data/guilds.db')
 
@@ -17,7 +18,7 @@ class Guilds {
             );`;
             this.db.exec(createGuildTable)
         } catch (err) {
-            process.dLogger.log(`in crud/Guilds/constructor: ${err.message}`)
+            this.dLogger && this.dLogger.log(`in crud/Guilds/constructor: ${err.message}`)
         }
     }
 
